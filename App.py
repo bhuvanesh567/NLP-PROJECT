@@ -1,29 +1,32 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.sentiment import SentimentIntensityAnalyzer
+from textblob import TextBlob
 import speech_recognition as sr
-import matplotlib.pyplot as plt
+import io
 
-
-
-import nltk
-nltk.download("punkt")
-
-
-
-# Ensure all required NLTK resources are available
+# Download necessary NLTK resources
 nltk.download("punkt")
 nltk.download("stopwords")
 nltk.download("wordnet")
 nltk.download("vader_lexicon")
-nltk.download("omw-1.4")
-nltk.download("averaged_perceptron_tagger")
 
+import nltk
+import os
 
+nltk_data_dir = os.path.join(os.path.expanduser("~"), "nltk_data")
+os.makedirs(nltk_data_dir, exist_ok=True)
+nltk.data.path.append(nltk_data_dir)
+
+for resource in ["punkt", "stopwords", "wordnet", "vader_lexicon"]:
+    nltk.download(resource, download_dir=nltk_data_dir)
 
 
 # Initialize NLP tools
@@ -45,22 +48,24 @@ def analyze_sentiment(text):
     return processed_text, sentiment_score, sentiment_label
 
 # Streamlit App Title
-st.title("Sentiment Analysis App")
+st.title("📊 NLP-Based Sentiment Analysis App")
 
-# 📊 File Analysis Section (First)
-st.header("📊 Analyze Files")
+# 📂 File Upload Section
+st.header("Upload a CSV or TXT file for Sentiment Analysis")
 uploaded_file = st.file_uploader("Upload a CSV or TXT file", type=["csv", "txt"])
 
 if uploaded_file is not None:
+    # Handling CSV Files
     if uploaded_file.name.endswith(".csv"):
         df = pd.read_csv(uploaded_file)
-    else:
+    else:  # Handling TXT Files
         content = uploaded_file.getvalue().decode("utf-8")
         df = pd.DataFrame({"Text": content.splitlines()})
 
-    st.write("### File Preview")
+    st.write("### Dataset Preview")
     st.dataframe(df.head())
 
+    # Dynamically Detect Text Column
     text_column = None
     for col in df.columns:
         if df[col].dtype == "object":
@@ -70,54 +75,46 @@ if uploaded_file is not None:
     if text_column:
         df["Processed_Text"], df["Sentiment_Score"], df["Sentiment_Label"] = zip(*df[text_column].apply(analyze_sentiment))
 
-        st.subheader("File Sentiment Analysis Results:")
+        st.write("### Sentiment Analysis Results")
         st.dataframe(df[[text_column, "Processed_Text", "Sentiment_Label"]])
 
-        st.subheader("Sentiment Distribution:")
+        # 📊 Sentiment Distribution
+        st.write("### Sentiment Distribution")
         fig, ax = plt.subplots()
-        df["Sentiment_Label"].value_counts().plot(kind="bar", ax=ax, color=["skyblue", "salmon", "lightgreen"])
-        ax.set_title("Sentiment Distribution")
-        ax.set_xlabel("Sentiment")
-        ax.set_ylabel("Count")
+        df["Sentiment_Label"].value_counts().plot(kind="bar", ax=ax, color=["green", "red", "gray"])
         st.pyplot(fig)
+    else:
+        st.warning("No valid text column found in the uploaded file!")
 
-        
-
-# 📝 Text Analysis Section (Second)
-st.header("📝 Analyze Text")
-user_text = st.text_area("Enter text for analysis:")
+# ✍ *Real-time Text Sentiment Analysis*
+st.header("📝 Real-time Text Sentiment Analysis")
+user_text = st.text_area("Enter text for sentiment analysis:", key="text_input_area")
 
 if user_text:
     processed_text, sentiment_score, sentiment_label = analyze_sentiment(user_text)
-    st.subheader("Sentiment Analysis:")
     st.write(f"Processed Text: {processed_text}")
     st.write(f"Sentiment Score: {sentiment_score}")
     st.write(f"Sentiment Label: {sentiment_label}")
 
-# 🎤 Speech Analysis Section (Third)
-st.header("🎤 Analyze Speech")
-if st.button("Start Speech Recording"):
-    try:
-        recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
-            st.write("Listening... Speak now!")
-            with st.spinner("Recording..."):
-                audio = recognizer.listen(source, timeout=10)
+# 🎤 *Real-time Speech Sentiment Analysis*
+st.header("🎤 Real-time Speech Sentiment Analysis")
 
-        speech_text = recognizer.recognize_google(audio)
-        st.write(f"Recognized Speech: {speech_text}")
+if st.button("Start Recording"):
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        st.write("Listening... Speak now!")
+        audio = recognizer.listen(source)
 
-        processed_text, sentiment_score, sentiment_label = analyze_sentiment(speech_text)
-        st.subheader("Speech Sentiment Analysis:")
-        st.write(f"Processed Text: {processed_text}")
-        st.write(f"Sentiment Score: {sentiment_score}")
-        st.write(f"Sentiment Label: {sentiment_label}")
+        try:
+            speech_text = recognizer.recognize_google(audio)
+            st.write(f"Recognized Speech: {speech_text}")
 
-    except sr.UnknownValueError:
-        st.error("Google Speech Recognition could not understand the audio.")
-    except sr.RequestError as e:
-        st.error(f"Could not request results from Google Speech Recognition service; {e}")
-    except OSError:
-        st.error("No microphone detected! Make sure your microphone is plugged in and working.")
-    except TimeoutError:
-        st.error("No speech detected within the time limit.")
+            processed_text, sentiment_score, sentiment_label = analyze_sentiment(speech_text)
+            st.write(f"Processed Text: {processed_text}")
+            st.write(f"Sentiment Score: {sentiment_score}")
+            st.write(f"Sentiment Label: {sentiment_label}")
+
+        except sr.UnknownValueError:
+            st.error("Google Speech Recognition could not understand the audio.")
+        except sr.RequestError as e:
+            st.error(f"Could not request results from Google Speech Recognition service; {e}")
