@@ -9,3 +9,13 @@ speechrecognition
 scipy
 pydub
 pyaudio
+
+
+streamlit
+pandas
+numpy
+matplotlib
+seaborn
+nltk
+textblob
+speechrecognition
