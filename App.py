@@ -7,7 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.sentiment import SentimentIntensityAnalyzer
 import speech_recognition as sr
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud
+
 
 # Download NLTK resources
 nltk.download("punkt")
