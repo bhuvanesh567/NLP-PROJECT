@@ -94,6 +94,7 @@ if user_text:
     st.write(f"Sentiment Label: {sentiment_label}")
 
 # 🎤 *Real-time Speech Sentiment Analysis*
+st.header("🎤 Real-time Speech Sentiment Analysis")
 import speech_recognition as sr
 
 recognizer = sr.Recognizer()
