@@ -8,3 +8,4 @@ textblob
 speechrecognition
 scipy
 pydub
+pyaudio
