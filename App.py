@@ -16,6 +16,12 @@ nltk.download("stopwords")
 nltk.download("wordnet")
 nltk.download("vader_lexicon")
 
+import nltk
+from nltk.tokenize import word_tokenize
+
+
+# Now initialize and use NLP functions
+
 # Initialize NLP tools
 lemmatizer = WordNetLemmatizer()
 sia = SentimentIntensityAnalyzer()
