@@ -18,17 +18,6 @@ nltk.download("stopwords")
 nltk.download("wordnet")
 nltk.download("vader_lexicon")
 
-import nltk
-import os
-
-nltk_data_dir = os.path.join(os.path.expanduser("~"), "nltk_data")
-os.makedirs(nltk_data_dir, exist_ok=True)
-nltk.data.path.append(nltk_data_dir)
-
-for resource in ["punkt", "stopwords", "wordnet", "vader_lexicon"]:
-    nltk.download(resource, download_dir=nltk_data_dir)
-
-
 # Initialize NLP tools
 lemmatizer = WordNetLemmatizer()
 sia = SentimentIntensityAnalyzer()
