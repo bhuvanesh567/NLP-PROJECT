@@ -7,6 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.sentiment import SentimentIntensityAnalyzer
 import speech_recognition as sr
 import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 
 # Download NLTK resources
 nltk.download("punkt")
@@ -34,45 +35,9 @@ def analyze_sentiment(text):
     return processed_text, sentiment_score, sentiment_label
 
 # Streamlit App Title
-st.title("📚 Text and Speech Analysis App")
+st.title("Sentiment Analysis App")
 
-# 📝 Text Analysis Section
-st.header("📝 Analyze Text")
-user_text = st.text_area("Enter text for analysis:")
-
-if user_text:
-    processed_text, sentiment_score, sentiment_label = analyze_sentiment(user_text)
-    st.subheader("Sentiment Analysis:")
-    st.write(f"Processed Text: {processed_text}")
-    st.write(f"Sentiment Score: {sentiment_score}")
-    st.write(f"Sentiment Label: {sentiment_label}")
-
-# 🎤 Speech Analysis Section
-st.header("🎤 Analyze Speech")
-if st.button("Start Speech Recording"):
-    try:
-        recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
-            st.write("Listening... Speak now!")
-            audio = recognizer.listen(source)
-
-        speech_text = recognizer.recognize_google(audio)
-        st.write(f"Recognized Speech: {speech_text}")
-
-        processed_text, sentiment_score, sentiment_label = analyze_sentiment(speech_text)
-        st.subheader("Speech Sentiment Analysis:")
-        st.write(f"Processed Text: {processed_text}")
-        st.write(f"Sentiment Score: {sentiment_score}")
-        st.write(f"Sentiment Label: {sentiment_label}")
-
-    except sr.UnknownValueError:
-        st.error("Google Speech Recognition could not understand the audio.")
-    except sr.RequestError as e:
-        st.error(f"Could not request results from Google Speech Recognition service; {e}")
-    except OSError:
-        st.error("No microphone detected! Make sure your microphone is plugged in and working.")
-
-# 📊 File Analysis Section
+# 📊 File Analysis Section (First)
 st.header("📊 Analyze Files")
 uploaded_file = st.file_uploader("Upload a CSV or TXT file", type=["csv", "txt"])
 
@@ -101,6 +66,57 @@ if uploaded_file is not None:
         st.subheader("Sentiment Distribution:")
         fig, ax = plt.subplots()
         df["Sentiment_Label"].value_counts().plot(kind="bar", ax=ax, color=["skyblue", "salmon", "lightgreen"])
+        ax.set_title("Sentiment Distribution")
+        ax.set_xlabel("Sentiment")
+        ax.set_ylabel("Count")
         st.pyplot(fig)
+
+        # Word Cloud
+        st.subheader("Word Cloud of Most Frequent Words")
+        all_words = " ".join(df["Processed_Text"].tolist())
+        wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_words)
+        plt.figure(figsize=(10, 5))
+        plt.imshow(wordcloud, interpolation="bilinear")
+        plt.axis("off")
+        st.pyplot(plt)
     else:
         st.warning("No valid text column found in the uploaded file!")
+
+# 📝 Text Analysis Section (Second)
+st.header("📝 Analyze Text")
+user_text = st.text_area("Enter text for analysis:")
+
+if user_text:
+    processed_text, sentiment_score, sentiment_label = analyze_sentiment(user_text)
+    st.subheader("Sentiment Analysis:")
+    st.write(f"Processed Text: {processed_text}")
+    st.write(f"Sentiment Score: {sentiment_score}")
+    st.write(f"Sentiment Label: {sentiment_label}")
+
+# 🎤 Speech Analysis Section (Third)
+st.header("🎤 Analyze Speech")
+if st.button("Start Speech Recording"):
+    try:
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            st.write("Listening... Speak now!")
+            with st.spinner("Recording..."):
+                audio = recognizer.listen(source, timeout=10)
+
+        speech_text = recognizer.recognize_google(audio)
+        st.write(f"Recognized Speech: {speech_text}")
+
+        processed_text, sentiment_score, sentiment_label = analyze_sentiment(speech_text)
+        st.subheader("Speech Sentiment Analysis:")
+        st.write(f"Processed Text: {processed_text}")
+        st.write(f"Sentiment Score: {sentiment_score}")
+        st.write(f"Sentiment Label: {sentiment_label}")
+
+    except sr.UnknownValueError:
+        st.error("Google Speech Recognition could not understand the audio.")
+    except sr.RequestError as e:
+        st.error(f"Could not request results from Google Speech Recognition service; {e}")
+    except OSError:
+        st.error("No microphone detected! Make sure your microphone is plugged in and working.")
+    except TimeoutError:
+        st.error("No speech detected within the time limit.")
