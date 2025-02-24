@@ -13,10 +13,18 @@ import speech_recognition as sr
 import io
 
 # Download necessary NLTK resources
+import nltk
+
+# Download necessary NLTK resources
 nltk.download("punkt")
 nltk.download("stopwords")
 nltk.download("wordnet")
 nltk.download("vader_lexicon")
+nltk.download("omw-1.4")  # Ensures lemmatization works
+nltk.download("averaged_perceptron_tagger")  # Fixes some tagging issues
+
+# Manually download missing resource to prevent LookupError
+nltk.download("punkt_tab")
 
 # Initialize NLP tools
 lemmatizer = WordNetLemmatizer()
