@@ -94,15 +94,29 @@ if user_text:
     st.write(f"Sentiment Label: {sentiment_label}")
 
 # 🎤 *Real-time Speech Sentiment Analysis*
-st.header("🎤 Real-time Speech Sentiment Analysis")
+import speech_recognition as sr
+
+recognizer = sr.Recognizer()
+
+with sr.Microphone() as source:
+    print("Say something...")
+    audio = recognizer.listen(source)
+
+    try:
+        text = recognizer.recognize_google(audio)
+        print("Recognized Speech:", text)
+    except sr.UnknownValueError:
+        print("Could not understand the audio")
+    except sr.RequestError:
+        print("Error with Google Speech Recognition service")
 
 if st.button("Start Recording"):
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        st.write("Listening... Speak now!")
-        audio = recognizer.listen(source)
+    try:
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            st.write("Listening... Speak now!")
+            audio = recognizer.listen(source)
 
-        try:
             speech_text = recognizer.recognize_google(audio)
             st.write(f"Recognized Speech: {speech_text}")
 
@@ -111,7 +125,9 @@ if st.button("Start Recording"):
             st.write(f"Sentiment Score: {sentiment_score}")
             st.write(f"Sentiment Label: {sentiment_label}")
 
-        except sr.UnknownValueError:
-            st.error("Google Speech Recognition could not understand the audio.")
-        except sr.RequestError as e:
-            st.error(f"Could not request results from Google Speech Recognition service; {e}")
+    except sr.UnknownValueError:
+        st.error("Google Speech Recognition could not understand the audio.")
+    except sr.RequestError as e:
+        st.error(f"Could not request results from Google Speech Recognition service; {e}")
+    except OSError:
+        st.error("No microphone detected! Make sure your microphone is plugged in and working.")
