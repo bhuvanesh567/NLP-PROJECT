@@ -6,3 +6,5 @@ seaborn
 nltk
 textblob
 speechrecognition
+scipy
+pydub
