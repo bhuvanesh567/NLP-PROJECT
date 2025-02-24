@@ -9,12 +9,22 @@ import speech_recognition as sr
 import matplotlib.pyplot as plt
 
 
-# Download NLTK resources
+
+import nltk
+nltk.download("punkt")
+
+
+
+# Ensure all required NLTK resources are available
 nltk.download("punkt")
 nltk.download("stopwords")
 nltk.download("wordnet")
 nltk.download("vader_lexicon")
 nltk.download("omw-1.4")
+nltk.download("averaged_perceptron_tagger")
+
+
+
 
 # Initialize NLP tools
 lemmatizer = WordNetLemmatizer()
@@ -71,16 +81,7 @@ if uploaded_file is not None:
         ax.set_ylabel("Count")
         st.pyplot(fig)
 
-        # Word Cloud
-        st.subheader("Word Cloud of Most Frequent Words")
-        all_words = " ".join(df["Processed_Text"].tolist())
-        wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_words)
-        plt.figure(figsize=(10, 5))
-        plt.imshow(wordcloud, interpolation="bilinear")
-        plt.axis("off")
-        st.pyplot(plt)
-    else:
-        st.warning("No valid text column found in the uploaded file!")
+        
 
 # 📝 Text Analysis Section (Second)
 st.header("📝 Analyze Text")
