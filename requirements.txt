@@ -1,12 +1,5 @@
 streamlit
 pandas
-numpy
-matplotlib
-seaborn
 nltk
-textblob
-speechrecognition
-scipy
-pydub
-pyaudio
-
+SpeechRecognition
+matplotlib
