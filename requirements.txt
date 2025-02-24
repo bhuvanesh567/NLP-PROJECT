@@ -1,5 +1,8 @@
 streamlit
 pandas
-nltk
-SpeechRecognition
+numpy
 matplotlib
+seaborn
+nltk
+textblob
+speechrecognition
