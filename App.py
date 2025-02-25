@@ -10,6 +10,19 @@ from nltk.stem import WordNetLemmatizer
 from nltk.sentiment import SentimentIntensityAnalyzer
 import speech_recognition as sr
 
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+
+# Ensure necessary NLTK resources are downloaded
+nltk_resources = ["vader_lexicon"]
+for resource in nltk_resources:
+    try:
+        nltk.data.find(f"sentiment/{resource}.zip")
+    except LookupError:
+        nltk.download(resource)
+
+# Now initialize SentimentIntensityAnalyzer after ensuring it's downloaded
+sia = SentimentIntensityAnalyzer()
 
 # 🔧 Initialize NLP tools
 lemmatizer = WordNetLemmatizer()
