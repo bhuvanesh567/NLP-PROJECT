@@ -11,16 +11,6 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import speech_recognition as sr
 
 
-import nltk
-
-# ✅ Ensure necessary NLTK resources are downloaded
-nltk_resources = ["punkt", "stopwords", "wordnet", "vader_lexicon"]
-for resource in nltk_resources:
-    try:
-        nltk.data.find(f"{resource}")  # ✅ Correct way to check resources
-    except LookupError:
-        nltk.download(resource)
-
 # 🔧 Initialize NLP tools
 lemmatizer = WordNetLemmatizer()
 sia = SentimentIntensityAnalyzer()
