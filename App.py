@@ -8,47 +8,49 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.sentiment import SentimentIntensityAnalyzer
-from textblob import TextBlob
 import speech_recognition as sr
-import io
 
-# Download necessary NLTK resources
-nltk.download("punkt")
-nltk.download("stopwords")
-nltk.download("wordnet")
-nltk.download("vader_lexicon")
-nltk.download("averaged_perceptron_tagger")
 
 import nltk
-import os
 
-nltk_data_dir = os.path.join(os.path.expanduser("~"), "nltk_data")
-os.makedirs(nltk_data_dir, exist_ok=True)
-nltk.data.path.append(nltk_data_dir)
+# ✅ Ensure necessary NLTK resources are downloaded
+nltk_resources = ["punkt", "stopwords", "wordnet", "vader_lexicon"]
+for resource in nltk_resources:
+    try:
+        nltk.data.find(f"{resource}")  # ✅ Correct way to check resources
+    except LookupError:
+        nltk.download(resource)
 
-for resource in ["punkt", "stopwords", "wordnet", "vader_lexicon"]:
-    nltk.download(resource, download_dir=nltk_data_dir)
-
-
-# Initialize NLP tools
+# 🔧 Initialize NLP tools
 lemmatizer = WordNetLemmatizer()
 sia = SentimentIntensityAnalyzer()
 stop_words = set(stopwords.words("english"))
 
-# Define the text preprocessing function
+# ✅ Define text preprocessing function with error handling
 def preprocess_text(text):
-    tokens = word_tokenize(text)
-    filtered_tokens = [lemmatizer.lemmatize(word) for word in tokens if word.lower() not in stop_words]
-    return " ".join(filtered_tokens)
+    if not isinstance(text, str) or text.strip() == "":  # Ensure valid text input
+        return ""
 
-# Function to analyze sentiment
+    try:
+        tokens = word_tokenize(text)
+        filtered_tokens = [lemmatizer.lemmatize(word) for word in tokens if word.lower() not in stop_words]
+        return " ".join(filtered_tokens)
+    except Exception as e:
+        st.error(f"Error during text preprocessing: {e}")
+        return ""
+
+# ✅ Function to analyze sentiment safely
 def analyze_sentiment(text):
     processed_text = preprocess_text(text)
+    
+    if not processed_text:  # If preprocessing failed or text is empty
+        return "", 0.0, "Neutral"
+
     sentiment_score = sia.polarity_scores(processed_text)["compound"]
     sentiment_label = "Positive" if sentiment_score > 0 else "Negative" if sentiment_score < 0 else "Neutral"
     return processed_text, sentiment_score, sentiment_label
 
-# Streamlit App Title
+# 🎨 Streamlit App Title
 st.title("📊 NLP-Based Sentiment Analysis App")
 
 # 📂 File Upload Section
@@ -56,7 +58,7 @@ st.header("Upload a CSV or TXT file for Sentiment Analysis")
 uploaded_file = st.file_uploader("Upload a CSV or TXT file", type=["csv", "txt"])
 
 if uploaded_file is not None:
-    # Handling CSV Files
+    # 🔹 Handling CSV & TXT Files
     if uploaded_file.name.endswith(".csv"):
         df = pd.read_csv(uploaded_file)
     else:  # Handling TXT Files
@@ -66,18 +68,18 @@ if uploaded_file is not None:
     st.write("### Dataset Preview")
     st.dataframe(df.head())
 
-    # Dynamically Detect Text Column
-    text_column = None
-    for col in df.columns:
-        if df[col].dtype == "object":
-            text_column = col
-            break
+    # 🔹 Automatically detect text columns
+    text_columns = [col for col in df.columns if df[col].dtype == "object"]
+    if text_columns:
+        selected_col = st.selectbox("Select the text column for analysis:", text_columns)
 
-    if text_column:
-        df["Processed_Text"], df["Sentiment_Score"], df["Sentiment_Label"] = zip(*df[text_column].apply(analyze_sentiment))
+        # Remove empty values before analysis
+        df = df.dropna(subset=[selected_col])
+
+        df["Processed_Text"], df["Sentiment_Score"], df["Sentiment_Label"] = zip(*df[selected_col].apply(analyze_sentiment))
 
         st.write("### Sentiment Analysis Results")
-        st.dataframe(df[[text_column, "Processed_Text", "Sentiment_Label"]])
+        st.dataframe(df[[selected_col, "Processed_Text", "Sentiment_Label"]])
 
         # 📊 Sentiment Distribution
         st.write("### Sentiment Distribution")
